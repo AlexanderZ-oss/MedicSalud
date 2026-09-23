@@ -1,0 +1,21 @@
+# Build output
+backend/target/
+frontend/dist/
+frontend/node_modules/
+
+# Runtime logs
+*.log
+backend/*.err
+
+# Local secrets and environment files
+.env
+.env.*
+!.env.azure.example
+backend/src/main/resources/application-local.properties
+
+# IDE and OS files
+.vscode/
+.idea/
+*.iml
+.DS_Store
+Thumbs.db
