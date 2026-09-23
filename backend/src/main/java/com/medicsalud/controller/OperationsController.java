@@ -81,18 +81,25 @@ public class OperationsController {
             }
             BigDecimal total = BigDecimal.ZERO;
             boolean prescriptionRequired = false;
+            List<Product> products = new java.util.ArrayList<>();
+            List<Integer> quantities = new java.util.ArrayList<>();
             for (Map<String, Object> item : items) {
                 Product product = productRepository.findById(Long.parseLong(String.valueOf(item.get("productId"))))
                         .orElseThrow(() -> new IllegalArgumentException("Producto no encontrado"));
                 int quantity = Integer.parseInt(String.valueOf(item.get("quantity")));
                 if (quantity < 1 || product.getStock() < quantity) throw new IllegalArgumentException("Stock insuficiente");
-                product.setStock(product.getStock() - quantity);
-                productRepository.save(product);
+                products.add(product);
+                quantities.add(quantity);
                 total = total.add(product.getPrice().multiply(BigDecimal.valueOf(quantity)));
                 prescriptionRequired |= product.isPrescriptionRequired();
             }
             if (prescriptionRequired && !"PICKUP_PRESCRIPTION".equals(deliveryMode)) {
                 throw new IllegalArgumentException("Los medicamentos con receta solo se entregan presencialmente");
+            }
+            for (int index = 0; index < products.size(); index++) {
+                Product product = products.get(index);
+                product.setStock(product.getStock() - quantities.get(index));
+                productRepository.save(product);
             }
             Invoice invoice = invoiceRepository.save(new Invoice(null, patientName.trim(), patientDni.trim(), total,
                     prescriptionRequired ? "PENDING_PRESCRIPTION" : "PENDING", deliveryMode,
